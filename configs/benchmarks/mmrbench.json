@@ -1,0 +1,24 @@
+{
+  "modality": "text+image",
+  "seed": 42,
+  "device": "auto",
+  "dataset": {
+    "name": "MMRBench",
+    "dataset_dir": "./data/mmrbench",
+    "split": {
+      "mode": "in-domain",
+      "ratios": {
+        "train": 0.4,
+        "test": 0.6
+      }
+    }
+  },
+  "embeddings": {
+    "text_model": "ViT-B/16",
+    "image_model": "ViT-B/16",
+    "batch_size": 128,
+    "normalize": true,
+    "training": false,
+    "out_dim": 1024
+  }
+}

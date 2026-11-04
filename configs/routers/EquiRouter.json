@@ -1,0 +1,98 @@
+{
+  "method": "EquiRouter",
+  "cache_embeddings": true,
+  "perf_model": {
+    "trunk_hidden": [1024, 512],
+    "trunk_out_dim": 512,
+    "model_emb_dim": 128,
+    "head_hidden": [512],
+    "use_layernorm": true,
+    "dropout": 0.0,
+    "film_identity_init": false
+  },
+  "training": {
+    "lr": 1e-4,
+    "epochs": 5,
+    "batch_size": 128,
+    "optimizer": "adam",
+    "loss": "mse",
+    "weight_decay": 0.0,
+    "grad_clip": 5.0,
+    "pointwise_weight": 1.0,
+    "rank_weight": 50.0,
+    "rank_temperature": 1.0,
+    "rank_margin": 0.0,
+    "tie_epsilon": 0.0,
+    "tie_cost_weight": 1.0,
+    "require_caro": true,
+    "standardize_cost": true,
+    "dataset_overrides": {
+      "Routerbench": {
+        "lr": 1e-3,
+        "epochs": 30,
+        "batch_size": 2048,
+        "grad_clip": 0.0,
+        "pointwise_weight": 10.0,
+        "rank_weight": 1.0,
+        "tie_cost_weight": 0.1
+      },
+      "RouterEval": {
+        "lr": 1e-3,
+        "epochs": 5,
+        "batch_size": 64,
+        "grad_clip": 0.0,
+        "pointwise_weight": 10.0,
+        "rank_weight": 10.0,
+        "tie_cost_weight": 0.001
+      },
+      "MixInstruct": {
+        "lr": 1e-3,
+        "epochs": 5,
+        "batch_size": 2048,
+        "grad_clip": 0.0,
+        "pointwise_weight": 1.0,
+        "rank_weight": 50.0,
+        "tie_epsilon": 0.005,
+        "tie_cost_weight": 1.0
+      },
+      "MMRBench": {
+        "lr": 0.0015,
+        "epochs": 40,
+        "batch_size": 256,
+        "optimizer": "adam",
+        "pointwise_weight": 33.0,
+        "rank_weight": 0.15,
+        "tie_cost_weight": 1.0,
+        "weight_decay": 0.01,
+        "grad_clip": 5.0
+      }
+    }
+  },
+  "model": {
+    "name": "mlp",
+    "hidden_sizes": [256, 128],
+    "activation": "ReLU",
+    "dropout": 0.0,
+    "use_batchnorm": false,
+    "mf": {
+      "use_mf": false,
+      "init_std": 0.01
+    },
+    "dataset_overrides": {
+      "RouterEval": {
+        "mf": {
+          "use_mf": true,
+          "init_std": 0.01
+        }
+      }
+    }
+  },
+  "paper_reproduction": {
+    "split": {
+      "mode": "in-domain",
+      "train": 0.4,
+      "test": 0.6
+    },
+    "budget_points": 100
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "modality": "text",
+  "seed": 42,
+  "device": "auto",
+  "dataset": {
+    "name": "Mixinstruct",
+    "dataset_dir": "./data/mixinstruct",
+    "split": {
+      "mode": "in-domain",
+      "ratios": {
+        "train": 0.4,
+        "test": 0.6
+      }
+    }
+  },
+  "embeddings": {
+    "text_model": "all-MiniLM-L6-v2",
+    "image_model": null,
+    "batch_size": 32,
+    "normalize": true,
+    "training": false,
+    "out_dim": 384
+  }
+}

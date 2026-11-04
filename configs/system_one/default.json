@@ -1,0 +1,13 @@
+{
+  "neighbors": 32,
+  "cache_dir": "outputs/system_one/cache",
+  "jev": {
+    "model": "jev-1.14.0",
+    "api_key_env": "TYPESAFE_API_KEY",
+    "timeout": 120,
+    "retries": 3
+  },
+  "clef-flash": {
+    "revision": "f0b7d3cd65296abfe459e6c228b618f5d8b26d2f"
+  }
+}

@@ -1,0 +1,5 @@
+# Optional native Clef-Flash runtime; Jev uses the Python standard library.
+-r requirements.txt
+transformers>=5.3,<6
+accelerate>=1,<2
+safetensors>=0.4,<1

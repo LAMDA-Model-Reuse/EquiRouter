@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.8.0 torchvision==0.23.0
+          python -m pip install -r requirements.txt "pytest>=8,<10" "ruff>=0.11,<1"
+      - name: Check style and dependencies
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+          python -m pip check
+      - name: Compile Python sources
+        run: python -m compileall -q main.py train.py methods scripts utils tests
+      - name: Run unit and smoke tests
+        run: python -m pytest -q

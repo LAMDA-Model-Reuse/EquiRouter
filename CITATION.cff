@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use EquiRouter, please cite this software and its accompanying work."
+title: "EquiRouter"
+type: software
+authors:
+  - family-names: Lai
+    given-names: Guannan
+  - family-names: Chen
+    given-names: Long
+  - family-names: Ye
+    given-names: Han-Jia
+repository-code: "https://github.com/LAMDA-Model-Reuse/EquiRouter"
+url: "https://openreview.net/forum?id=v2DOrFK8Wp"
+license: MIT
+preferred-citation:
+  type: conference-paper
+  title: "When LLM Routers Overpay: The Cost of Strong-Model Preference"
+  authors:
+    - family-names: Lai
+      given-names: Guannan
+    - family-names: Chen
+      given-names: Long
+    - family-names: Ye
+      given-names: Han-Jia
+  collection-title: "Advances in Neural Information Processing Systems"
+  year: 2026
+  url: "https://openreview.net/forum?id=v2DOrFK8Wp"
