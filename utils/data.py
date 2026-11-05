@@ -581,6 +581,29 @@ class MMRBenchLoader(BaseDatasetLoader):
         logging.info(f"[utils.data.py] Final DataFrame shape: {new_df.shape}")
         return model_list, new_df
 
+    def split(self, dataset: Any) -> tuple[pd.DataFrame, pd.DataFrame]:
+        """Split queries, then fill missing targets with per-candidate training means."""
+        train, test = super().split(dataset)
+        columns = [
+            column
+            for column in train.columns
+            if re.fullmatch(r"model_\d+_(performance|cost)", column)
+        ]
+        means = train[columns].mean()
+        unavailable = means.index[~np.isfinite(means)].tolist()
+        if unavailable:
+            raise ValueError(
+                "Cannot compute MMR-Bench training means for target columns: "
+                + ", ".join(unavailable)
+            )
+        for frame in (train, test):
+            frame[columns] = frame[columns].fillna(means)
+        self.args["dataset"]["target_imputation"] = {
+            "method": "training_column_mean",
+            "values": means.to_dict(),
+        }
+        return train, test
+
 
 class RouterEvalLoader(BaseDatasetLoader):
     name = "RouterEval"

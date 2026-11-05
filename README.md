@@ -105,14 +105,12 @@ python -m scripts.reproduce_equirouter --dataset routerbench --device auto
 ```
 
 The reproduction script writes to `outputs/equirouter-paper/` by default.
-Benchmark data and frozen encoders are downloaded on first use. See the
-[development and evaluation guide](docs/DEVELOPMENT.md) for dataset processing,
-missing-value requirements, metrics, baseline setup, and tests. Data and model
-licenses are listed in the [third-party notices](THIRD_PARTY_NOTICES.md).
+Benchmark data and frozen encoders are downloaded on first use. MMR-Bench uses
+per-candidate training means to impute utility and cost values in both splits.
+Data and model licenses are listed in the [third-party notices](THIRD_PARTY_NOTICES.md).
 
 [EquiRouter implementation](methods/EquiRouter.py) ·
 [System One baselines](methods/system_one/) ·
-[Developer guide](docs/DEVELOPMENT.md) ·
 [Figure provenance](assets/FIGURES.md)
 
 ## Citation

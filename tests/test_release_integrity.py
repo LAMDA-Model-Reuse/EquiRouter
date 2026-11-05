@@ -131,7 +131,7 @@ def test_cached_upstream_asset_is_also_verified(tmp_path, monkeypatch):
     download.assert_not_called()
 
 
-def test_mmrbench_preserves_missing_nano_values_without_other_model_fallback(tmp_path):
+def test_mmrbench_reads_nano_targets_from_its_own_columns(tmp_path):
     loader = MMRBenchLoader(str(tmp_path), {})
     names = [
         "Qwen2.5-VL-3B-Instruct",
@@ -161,6 +161,90 @@ def test_mmrbench_preserves_missing_nano_values_without_other_model_fallback(tmp
     assert pd.isna(frame.loc[0, "model_6_cost"])
     assert pd.isna(frame.loc[0, "model_6_prediction"])
     assert len(frame) == 1
+
+
+def test_mmrbench_imputes_both_splits_using_each_candidates_training_mean():
+    args = {
+        "seed": 42,
+        "dataset": {"split": {"mode": "in-domain", "ratios": {"train": 0.4, "test": 0.6}}},
+    }
+    raw = pd.DataFrame(
+        {
+            "sample_id": range(10),
+            "model_0_performance": [np.nan, np.nan, 1, 1, 0, 0, 1, 0, 1, np.nan],
+            "model_0_cost": [np.nan, np.nan, 100, 100, 100, 6, 100, 100, 2, np.nan],
+            "model_1_performance": [np.nan, 0, 1, 1, 1, 0, 1, 1, 0, np.nan],
+            "model_1_cost": [np.nan, 0, 100, 100, 100, 0, 100, 100, 0, np.nan],
+            "model_0_prediction": [None, *["response"] * 8, None],
+        }
+    )
+    original = raw.copy(deep=True)
+    train, test = MMRBenchLoader(None, args).split(raw)
+    assert train.sample_id.tolist() == [8, 1, 5, 0]
+    assert test.sample_id.tolist() == [7, 2, 9, 4, 3, 6]
+    means = {
+        "model_0_performance": 0.5,
+        "model_0_cost": 4.0,
+        "model_1_performance": 0.0,
+        "model_1_cost": 0.0,
+    }
+    filled = pd.concat([train, test]).set_index("sample_id").sort_index()
+    observed = original.set_index("sample_id")
+    for column, mean in means.items():
+        missing = observed[column].isna()
+        assert (filled.loc[missing, column] == mean).all()
+        pd.testing.assert_series_equal(filled.loc[~missing, column], observed.loc[~missing, column])
+    pd.testing.assert_series_equal(filled.model_0_prediction, observed.model_0_prediction)
+    pd.testing.assert_frame_equal(raw, original)
+    assert args["dataset"]["target_imputation"] == {
+        "method": "training_column_mean",
+        "values": means,
+    }
+
+
+@pytest.mark.parametrize("mode", ["in-domain", "out-of-domain"])
+def test_mmrbench_run_fills_targets_after_the_configured_split(mode, monkeypatch):
+    args = {
+        "seed": 42,
+        "dataset": {"split": {"mode": mode, "ratios": {"train": 0.4, "test": 0.6}}},
+    }
+    loader = MMRBenchLoader(None, args)
+    frame = pd.DataFrame(
+        {
+            "sample_id": range(10),
+            "eval_name": list("aabbccddee"),
+            "model_0_performance": [np.nan, *[1.0] * 9],
+            "model_0_cost": [np.nan, *[2.0] * 9],
+        }
+    )
+    monkeypatch.setattr(loader, "download", Mock(return_value=frame))
+    monkeypatch.setattr(loader, "process", Mock(return_value=(["candidate"], frame)))
+    train, test, models = loader.run()
+    assert models == ["candidate"]
+    assert (len(train), len(test)) == (4, 6)
+    assert set(train.sample_id).isdisjoint(test.sample_id)
+    for split in (train, test):
+        assert (split.model_0_performance == 1.0).all()
+        assert (split.model_0_cost == 2.0).all()
+    assert pd.isna(frame.loc[0, "model_0_performance"])
+
+
+@pytest.mark.parametrize("column", ["model_0_performance", "model_0_cost"])
+def test_mmrbench_cannot_use_test_observations_to_replace_a_missing_training_mean(column):
+    args = {
+        "seed": 42,
+        "dataset": {"split": {"mode": "in-domain", "ratios": {"train": 0.4, "test": 0.6}}},
+    }
+    frame = pd.DataFrame(
+        {
+            "sample_id": range(10),
+            "model_0_performance": [1.0] * 10,
+            "model_0_cost": [2.0] * 10,
+        }
+    )
+    frame.loc[[8, 1, 5, 0], column] = np.nan
+    with pytest.raises(ValueError, match=column):
+        MMRBenchLoader(None, args).split(frame)
 
 
 @pytest.mark.parametrize("revision", [None, "main", "a" * 39])
